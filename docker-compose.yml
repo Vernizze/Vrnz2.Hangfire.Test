@@ -1,0 +1,39 @@
+version: '3'
+
+networks:
+  hagfire_test_network:
+    driver: bridge
+    
+services:
+  mongodb:
+    image: mongo:latest
+    volumes_from:
+        - data
+    ports:
+      - 27020:27017
+    command: --auth
+    container_name: "db_mongodb_hagfire_test"
+    networks:
+      - hagfire_test_network
+      
+  data:
+    image: mongo:latest
+    volumes:
+        - /var/lib/mongo
+        - ./setup:/setup
+    command: "true"
+    container_name: "db_mongodb_hagfire_test_data"
+
+  api:
+    image: hagfire_test
+    environment:
+      - CONNECTION_STRINGS_MONGODBHANGFIRE=mongodb://hangfire:hang123@mongodb/Hangfire
+    build:
+      context: .
+    ports:
+      - 3000:80
+      - 3001:443
+    depends_on:
+      - mongodb
+    networks:
+      - hagfire_test_network
